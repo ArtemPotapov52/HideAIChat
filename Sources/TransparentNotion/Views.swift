@@ -449,8 +449,10 @@ struct StreamingText: View {
         Group {
             if isStreaming {
                 Text(renderMarkdown(displayed, full: false))
+                    .textSelection(.enabled)
             } else {
                 renderedBlocks
+                    .textSelection(.enabled)
             }
         }
         .environment(\.openURL, OpenURLAction { url in
