@@ -5,142 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HideAIChat — Stealth AI Overlay for macOS</title>
 <style>
-:root {
-  --g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;
-  --g400:#a3a3a3;--g500:#737373;--g600:#525252;--g700:#404040;
-  --g800:#262626;--g900:#171717;--g950:#0a0a0a;
-  --accent:#1a1a2e;
-}
+:root{--g50:#fafafa;--g100:#f5f5f5;--g200:#e5e5e5;--g300:#d4d4d4;--g400:#a3a3a3;--g500:#737373;--g600:#525252;--g700:#404040;--g800:#262626;--g900:#171717;--g950:#0a0a0a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;
-  background:var(--g50);color:var(--g700);line-height:1.6;
-  -webkit-font-smoothing:antialiased;overflow-x:hidden;
-}
-
-/* Nav */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  background:rgba(250,250,250,0.82);backdrop-filter:blur(24px) saturate(1.3);
-  border-bottom:1px solid var(--g200);
-}
-nav .inner{
-  max-width:1200px;margin:0 auto;padding:0 32px;
-  display:flex;align-items:center;justify-content:space-between;height:56px;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;background:var(--g50);color:var(--g700);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,250,250,0.82);backdrop-filter:blur(24px) saturate(1.3);border-bottom:1px solid var(--g200)}
+nav .inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px}
 nav .logo{font-size:16px;font-weight:650;color:var(--g900);letter-spacing:-.3px}
 nav .logo span{color:var(--g400);font-weight:400}
 nav .links{display:flex;gap:32px;align-items:center}
 nav .links a{font-size:13px;color:var(--g500);text-decoration:none;transition:color .2s}
 nav .links a:hover{color:var(--g800)}
-
-/* Hero */
-.hero{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:80px 32px;
-  background:linear-gradient(160deg,var(--g50) 0%,#fff 40%,var(--g50) 70%,var(--g100) 100%);
-  position:relative;overflow:hidden;
-}
-.hero::before{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:radial-gradient(ellipse at 30% 50%,rgba(0,0,0,.02) 0%,transparent 60%),
-              radial-gradient(ellipse at 70% 50%,rgba(0,0,0,.015) 0%,transparent 60%);
-  pointer-events:none;
-}
-.hero-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;
-  max-width:1200px;width:100%;position:relative;z-index:1;
-}
-.hero-left{animation:fadeUp .8s ease-out}
-.hero-right{animation:fadeUp .8s ease-out .2s both}
-.badge{
-  display:inline-block;padding:5px 14px;border-radius:100px;
-  font-size:11px;font-weight:500;letter-spacing:.4px;text-transform:uppercase;
-  background:var(--g200);color:var(--g600);margin-bottom:24px;
-}
-.hero h1{
-  font-size:56px;font-weight:700;color:var(--g900);
-  letter-spacing:-2.5px;line-height:1.05;margin-bottom:20px;
-}
-.hero h1 em{
-  font-style:normal;
-  background:linear-gradient(135deg,var(--g700),var(--g900));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero .sub{
-  font-size:17px;color:var(--g500);max-width:480px;
-  letter-spacing:-.1px;line-height:1.7;margin-bottom:32px;
-}
-.hero-buttons{display:flex;gap:12px;flex-wrap:wrap}
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:14px 32px;border-radius:12px;
-  font-size:14px;font-weight:500;text-decoration:none;
-  transition:all .25s;cursor:pointer;border:none;
-}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.split.flip{direction:rtl}
+.split.flip>*{direction:ltr}
+section{padding:120px 0}
+section .inner{max-width:1200px;margin:0 auto;padding:0 32px}
+.section-title{font-size:38px;font-weight:700;color:var(--g900);letter-spacing:-1.2px;margin-bottom:16px;line-height:1.1}
+.section-sub{font-size:16px;color:var(--g500);max-width:480px;line-height:1.75;margin-bottom:32px}
+.section-sub.wide{max-width:540px}
+kbd{display:inline-block;padding:2px 7px;border-radius:5px;font-family:'SF Mono',Menlo,monospace;font-size:11px;color:var(--g600);background:var(--g100);border:1px solid var(--g200);border-bottom-width:2px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:14px;font-weight:500;text-decoration:none;transition:all .25s;cursor:pointer;border:none}
 .btn-primary{background:var(--g900);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .btn-primary:hover{background:#000;transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.2)}
 .btn-secondary{background:#fff;color:var(--g700);border:1px solid var(--g200)}
 .btn-secondary:hover{background:var(--g50);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
-kbd{
-  display:inline-block;padding:2px 7px;border-radius:5px;
-  font-family:'SF Mono',Menlo,monospace;font-size:11px;
-  color:var(--g600);background:var(--g100);border:1px solid var(--g200);border-bottom-width:2px;
-}
-.hero .kbd-row{display:flex;gap:4px;align-items:center;margin-bottom:24px}
-
-/* Mockup */
-.mockup{
-  background:rgba(24,24,27,.95);border-radius:20px;padding:20px 16px 12px;
-  box-shadow:0 40px 100px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.06);
-  backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.06);
-  width:100%;max-width:500px;margin:0 auto;
-}
-.mockup-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 4px}
-.mockup-dots{display:flex;gap:6px;margin-right:auto}
-.mockup-dots span{width:9px;height:9px;border-radius:50%}
-.mockup-dots span:nth-child(1){background:rgba(255,255,255,.12)}
-.mockup-dots span:nth-child(2){background:rgba(255,255,255,.08)}
-.mockup-dots span:nth-child(3){background:rgba(255,255,255,.05)}
-.m-pill{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:4px 12px;border-radius:100px;
-  background:rgba(255,255,255,.04);font-size:10.5px;color:rgba(255,255,255,.3);font-weight:500;
-}
+.badge{display:inline-block;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:500;letter-spacing:.4px;text-transform:uppercase;background:var(--g200);color:var(--g600);margin-bottom:24px}
+.hero{min-height:100vh;display:flex;align-items:center;padding:80px 32px;background:linear-gradient(160deg,var(--g50) 0%,#fff 40%,var(--g50) 70%,var(--g100) 100%);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 50%,rgba(0,0,0,.02) 0%,transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(0,0,0,.015) 0%,transparent 60%);pointer-events:none}
+.hero .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1200px;width:100%;position:relative;z-index:1;margin:0 auto;padding:0 32px}
+.hero h1{font-size:56px;font-weight:700;color:var(--g900);letter-spacing:-2.5px;line-height:1.05;margin-bottom:20px}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--g700),var(--g900));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .sub{font-size:17px;color:var(--g500);max-width:480px;letter-spacing:-.1px;line-height:1.7;margin-bottom:32px}
+.hero-buttons{display:flex;gap:12px;flex-wrap:wrap}
+.hero-left{animation:fadeUp .8s ease-out}
+.hero-right{animation:fadeUp .8s ease-out .2s both}
+.mockup{background:rgba(24,24,27,.95);border-radius:20px;padding:20px 16px 12px;box-shadow:0 40px 100px rgba(0,0,0,.3),0 2px 6px rgba(0,0,0,.06);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.06);width:100%;max-width:500px}
+.m-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 4px}
+.m-dots{display:flex;gap:6px;margin-right:auto}
+.m-dots span{width:9px;height:9px;border-radius:50%}
+.m-dots span:nth-child(1){background:rgba(255,255,255,.12)}
+.m-dots span:nth-child(2){background:rgba(255,255,255,.08)}
+.m-dots span:nth-child(3){background:rgba(255,255,255,.05)}
+.m-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;background:rgba(255,255,255,.04);font-size:10.5px;color:rgba(255,255,255,.3);font-weight:500}
 .m-pill .d{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12)}
 .m-close{margin-left:auto;font-size:9px;color:rgba(255,255,255,.12);cursor:default}
-.mockup-body{display:flex;flex-direction:column;gap:8px;padding:0 4px;margin-bottom:14px;min-height:220px}
-.m-bubble{max-width:88%;padding:10px 13px;border-radius:11px;font-size:12px;line-height:1.55;color:rgba(255,255,255,.82)}
-.m-bubble.user{align-self:flex-end;background:rgba(255,255,255,.06)}
-.m-bubble.ai{align-self:flex-start;background:rgba(255,255,255,.018)}
-.m-bubble .code{margin-top:6px;padding:8px 10px;background:rgba(0,0,0,.35);border-radius:7px;font-size:10.5px;font-family:Menlo,monospace;color:rgba(255,255,255,.6);line-height:1.5}
-.mb-input{display:flex;gap:6px;align-items:center;margin-top:4px}
-.mb-input .f{
-  flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);
-  border-radius:14px;padding:10px 14px;font-size:11.5px;color:rgba(255,255,255,.6);
-  outline:none;font-family:inherit;
-}
-.mb-input .s{
-  width:32px;height:32px;border-radius:8px;background:#fff;border:none;
-  display:flex;align-items:center;justify-content:center;cursor:default;font-size:14px;color:#000;
-}
-.m-dots{display:inline-flex;gap:3px;margin-top:4px;padding:0 4px}
-.m-dots span{
-  width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.12);
-  animation:dp .9s ease-in-out infinite;
-}
-.m-dots span:nth-child(2){animation-delay:.2s}
-.m-dots span:nth-child(3){animation-delay:.4s}
+.m-body{display:flex;flex-direction:column;gap:8px;padding:0 4px;margin-bottom:14px;min-height:200px}
+.m-bub{max-width:88%;padding:10px 13px;border-radius:11px;font-size:12px;line-height:1.55;color:rgba(255,255,255,.82)}
+.m-bub.user{align-self:flex-end;background:rgba(255,255,255,.06)}
+.m-bub.ai{align-self:flex-start;background:rgba(255,255,255,.018)}
+.m-bub .cd{margin-top:6px;padding:8px 10px;background:rgba(0,0,0,.35);border-radius:7px;font-size:10.5px;font-family:Menlo,monospace;color:rgba(255,255,255,.6);line-height:1.5}
+.m-input{display:flex;gap:6px;align-items:center;margin-top:4px}
+.m-input .f{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:10px 14px;font-size:11.5px;color:rgba(255,255,255,.6);outline:none;font-family:inherit}
+.m-input .s{width:32px;height:32px;border-radius:8px;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:default;font-size:14px;color:#000}
+.anim-dots{display:inline-flex;gap:3px;margin-top:4px;padding:0 4px}
+.anim-dots span{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.12);animation:dp .9s ease-in-out infinite}
+.anim-dots span:nth-child(2){animation-delay:.2s}
+.anim-dots span:nth-child(3){animation-delay:.4s}
 @keyframes dp{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.5;transform:scale(1.25)}}
-
-/* Sections common */
-section{padding:100px 0}
-section .inner{max-width:1200px;margin:0 auto;padding:0 32px}
-.section-title{font-size:36px;font-weight:700;color:var(--g900);letter-spacing:-1px;margin-bottom:16px;line-height:1.1}
-.section-sub{font-size:16px;color:var(--g500);max-width:560px;line-height:1.7;margin-bottom:60px}
-
-/* Features */
-#features{background:var(--g50)}
+.s-dark{background:var(--g900);color:#fff}.s-dark .section-title{color:#fff}.s-dark .section-sub{color:rgba(255,255,255,.5)}
+.s-light{background:#fff}.s-gray{background:var(--g50)}
 .f-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--g200);border-radius:20px;overflow:hidden}
 .f-item{background:#fff;padding:40px 32px;transition:all .25s}
 .f-item:hover{background:var(--g50)}
@@ -148,122 +71,56 @@ section .inner{max-width:1200px;margin:0 auto;padding:0 32px}
 .f-icon svg{width:20px;height:20px;stroke:var(--g600)}
 .f-item h3{font-size:16px;font-weight:600;color:var(--g800);margin-bottom:8px}
 .f-item p{font-size:13.5px;color:var(--g500);line-height:1.7}
-
-/* Showcase — app screens */
-#showcase{background:#fff}
-.showcase-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.showcase-text .section-sub{margin-bottom:32px}
-.showcase-mockup{transform:scale(.95);transform-origin:top}
-
-/* Examples */
-#examples{background:var(--g50)}
 .ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.ex-card{
-  background:#fff;border-radius:20px;padding:28px;
-  border:1px solid var(--g200);transition:all .25s;
-}
+.ex-card{background:#fff;border-radius:20px;padding:28px;border:1px solid var(--g200);transition:all .25s}
 .ex-card:hover{border-color:var(--g300);box-shadow:0 12px 40px rgba(0,0,0,.04);transform:translateY(-2px)}
 .ex-q{font-size:14px;font-weight:500;color:var(--g800);margin-bottom:14px;display:flex;gap:8px}
 .ex-q .i{color:var(--g400);font-size:12px;margin-top:1px;font-weight:400}
 .ex-a{font-size:13px;color:var(--g500);line-height:1.7;border-left:2.5px solid var(--g200);padding-left:16px}
 .ex-a .hl{background:var(--g100);color:var(--g700);padding:1px 6px;border-radius:4px;font-size:12px}
-.ex-code{
-  display:block;background:var(--g900);color:rgba(255,255,255,.75);
-  padding:12px 14px;border-radius:10px;font-family:'SF Mono',Menlo,monospace;
-  font-size:11.5px;line-height:1.6;margin-top:8px;
-}
+.ex-code{display:block;background:var(--g900);color:rgba(255,255,255,.75);padding:12px 14px;border-radius:10px;font-family:'SF Mono',Menlo,monospace;font-size:11.5px;line-height:1.6;margin-top:8px}
 .ex-tags{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 .ex-tags span{font-size:10.5px;font-weight:500;color:var(--g500);background:var(--g100);padding:3px 10px;border-radius:100px}
-
-/* Steps */
-#setup{background:#fff;overflow:hidden;position:relative}
-#setup::before{
-  content:'';position:absolute;top:0;right:0;width:40%;height:100%;
-  background:linear-gradient(270deg,var(--g50),transparent);
-  pointer-events:none;
-}
-.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;position:relative;z-index:1}
-.steps-list{counter-reset:step}
-.step{counter-increment:step;display:flex;gap:20px;margin-bottom:40px}
-.step:last-child{margin-bottom:0}
-.step-num{
-  flex-shrink:0;width:40px;height:40px;border-radius:12px;
-  background:var(--g200);display:flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:600;color:var(--g600);
-}
-.step h3{font-size:16px;font-weight:600;color:var(--g800);margin-bottom:6px}
-.step p{font-size:14px;color:var(--g500);line-height:1.7}
-.step code{
-  font-family:'SF Mono',Menlo,monospace;font-size:12.5px;color:var(--g700);
-  background:var(--g100);padding:2px 8px;border-radius:5px;
-}
-.setup-diagram{
-  background:var(--g900);border-radius:20px;padding:40px;color:rgba(255,255,255,.7);
-  font-size:13px;line-height:1.8;font-family:'SF Mono',Menlo,monospace;
-}
-.setup-diagram .arrow{color:rgba(255,255,255,.15);margin:0 8px}
-.setup-diagram .label{color:rgba(255,255,255,.3);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;font-family:-apple-system,sans-serif}
+.setup-diagram{background:rgba(255,255,255,.06);border-radius:20px;padding:40px;font-size:13px;line-height:1.8;font-family:'SF Mono',Menlo,monospace;color:rgba(255,255,255,.6)}
+.setup-diagram .label{color:rgba(255,255,255,.25);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;font-family:-apple-system,sans-serif}
 .setup-diagram .hl{color:#6ee7b7}
-
-/* Stats */
-#stats{
-  background:linear-gradient(135deg,var(--g900),var(--g950));
-  color:#fff;padding:80px 0;
-}
+.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.faq-item{background:#fff;border:1px solid var(--g200);border-radius:16px;padding:24px;cursor:default;transition:all .2s}
+.faq-item:hover{border-color:var(--g300)}
+.faq-q{font-size:14px;font-weight:600;color:var(--g800);margin-bottom:8px}
+.faq-a{font-size:13px;color:var(--g500);line-height:1.7}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;text-align:center}
 .stat{padding:40px 20px}
 .stat-num{font-size:40px;font-weight:700;letter-spacing:-1px;margin-bottom:4px}
 .stat-label{font-size:13px;color:rgba(255,255,255,.4);font-weight:400}
-
-/* FAQ */
-#faq{background:var(--g50)}
-.faq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.faq-item{
-  background:#fff;border:1px solid var(--g200);border-radius:16px;padding:24px;
-  cursor:default;transition:all .2s;
-}
-.faq-item:hover{border-color:var(--g300)}
-.faq-q{font-size:14px;font-weight:600;color:var(--g800);margin-bottom:8px}
-.faq-a{font-size:13px;color:var(--g500);line-height:1.7}
-
-/* CTA */
-#cta{
-  background:#fff;text-align:center;padding:120px 0;
-}
-#cta h2{font-size:40px;font-weight:700;color:var(--g900);letter-spacing:-1.5px;margin-bottom:16px}
-#cta p{font-size:17px;color:var(--g500);margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
-
-/* Footer */
+.cta{text-align:center;padding:120px 0}
+.cta h2{font-size:40px;font-weight:700;color:var(--g900);letter-spacing:-1.5px;margin-bottom:16px}
+.cta p{font-size:17px;color:var(--g500);margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
 footer{border-top:1px solid var(--g200);padding:40px 0;background:#fff}
 footer .inner{max-width:1200px;margin:0 auto;padding:0 32px;display:flex;justify-content:space-between;align-items:center}
 footer p{font-size:13px;color:var(--g400)}
 footer a{color:var(--g500);text-decoration:none}
 footer a:hover{color:var(--g800)}
-
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-
+.hero-left{animation:fadeUp .8s ease-out}
+.hero-right{animation:fadeUp .8s ease-out .2s both}
 @media(max-width:900px){
-  .hero-grid{grid-template-columns:1fr;gap:48px;text-align:center}
+  .split,.hero .hero-grid{grid-template-columns:1fr;gap:48px}
+  .hero .hero-grid{text-align:center}
   .hero .sub{margin-left:auto;margin-right:auto}
   .hero-buttons{justify-content:center}
-  .hero .kbd-row{justify-content:center}
-  .showcase-grid{grid-template-columns:1fr;gap:32px}
-  .setup-grid{grid-template-columns:1fr}
-  .f-grid{grid-template-columns:1fr;border-radius:16px}
-  .ex-grid,.faq-grid{grid-template-columns:1fr}
+  .f-grid,.ex-grid,.faq-grid{grid-template-columns:1fr}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .hero h1{font-size:36px}
   .section-title{font-size:28px}
-  #stats .stat-num{font-size:28px}
-  #cta h2{font-size:28px}
+  .stat-num{font-size:28px}
+  .cta h2{font-size:28px}
   footer .inner{flex-direction:column;gap:12px;text-align:center}
-  .hero-grid,.showcase-grid,.setup-grid{padding:0}
-  .set-padding{padding-left:0!important;padding-right:0!important}
+  .split.flip{direction:ltr}
 }
 </style>
 </head>
 <body>
-
 <nav>
   <div class="inner">
     <div class="logo">Hide<span>AIChat</span></div>
@@ -282,30 +139,28 @@ footer a:hover{color:var(--g800)}
     <div class="hero-left">
       <div class="badge">&bull; macOS 15+ &nbsp; Apple Silicon</div>
       <h1>A <em>stealth AI overlay</em> for your desktop.</h1>
-      <p class="sub">A barely-visible chat window that lives on top of every app. Press a key to summon it, ask anywhere, press again &mdash; it vanishes.</p>
+      <p class="sub">A barely-visible chat window on top of every app. Press a key to summon, ask anything, press again &mdash; gone.</p>
       <div class="hero-buttons">
         <a href="https://github.com/ArtemPotapov52/HideAIChat/releases" class="btn btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download DMG
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download DMG
         </a>
         <a href="https://github.com/ArtemPotapov52/HideAIChat" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-          Source Code
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>Source Code
         </a>
       </div>
     </div>
     <div class="hero-right">
       <div class="mockup">
-        <div class="mockup-header">
-          <div class="mockup-dots"><span></span><span></span><span></span></div>
+        <div class="m-header">
+          <div class="m-dots"><span></span><span></span><span></span></div>
           <div class="m-pill"><span class="d"></span>Notion AI 4o<span style="font-size:7px;opacity:.4;margin-left:2px">&#9662;</span></div>
           <span class="m-close">&#10005;</span>
         </div>
-        <div class="mockup-body">
-          <div class="m-bubble user">How do I write a Swift async/await function?</div>
-          <div class="m-bubble ai">
+        <div class="m-body">
+          <div class="m-bub user">How do I write a Swift async/await function?</div>
+          <div class="m-bub ai">
             <strong style="color:rgba(255,255,255,.9)">Declare with </strong><code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px">async</code><strong style="color:rgba(255,255,255,.9)"> and call with </strong><code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px">await</code><strong style="color:rgba(255,255,255,.9)">:</strong>
-            <div class="code">
+            <div class="cd">
 func fetchUser(id: String) async throws -> User {<br>
 &nbsp;&nbsp;let (data, _) = try await URLSession<br>
 &nbsp;&nbsp;&nbsp;&nbsp;.shared.data(from: url)<br>
@@ -315,9 +170,9 @@ func fetchUser(id: String) async throws -> User {<br>
             </div>
             No more completion handlers. Clean and readable.
           </div>
-          <div class="m-dots"><span></span><span></span><span></span></div>
+          <div class="anim-dots"><span></span><span></span><span></span></div>
         </div>
-        <div class="mb-input">
+        <div class="m-input">
           <input class="f" placeholder="Ask a question..." value="" disabled>
           <div class="s">&uarr;</div>
         </div>
@@ -326,82 +181,88 @@ func fetchUser(id: String) async throws -> User {<br>
   </div>
 </section>
 
-<section id="features">
+<section class="s-light" id="stealth">
   <div class="inner">
-    <h2 class="section-title">Designed for flow.</h2>
-    <p class="section-sub">No tabs, no windows, no context switching. HideAIChat stays invisible until you need it, then disappears when you&rsquo;re done.</p>
-    <div class="f-grid">
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-        <h3>Stealth by default</h3>
-        <p>Opacity drops to 0.025 when idle &mdash; practically invisible. Click-through passes all mouse events. Only appears when summoned.</p>
+    <div class="split">
+      <div class="mockup" style="box-shadow:0 20px 60px rgba(0,0,0,.12)">
+        <div class="m-header">
+          <div class="m-dots"><span></span><span></span><span></span></div>
+          <div class="m-pill"><span class="d"></span>Claude Opus 4.7<span style="font-size:7px;opacity:.4;margin-left:2px">&#9662;</span></div>
+          <span class="m-close">&#10005;</span>
+        </div>
+        <div class="m-body">
+          <div class="m-bub user">Explain dependency injection in Swift with an example</div>
+          <div class="m-bub ai">
+            <strong style="color:rgba(255,255,255,.9)">Dependency injection</strong> is a pattern where an object receives its dependencies from outside rather than creating them internally. This makes code testable and loosely coupled.<br><br>
+            <strong style="color:rgba(255,255,255,.9)">Initializer injection</strong> (most common in Swift):
+            <div class="cd">
+protocol API { func fetch() }<br><br>
+class Service {<br>
+&nbsp;&nbsp;let api: API<br>
+&nbsp;&nbsp;init(api: API) { self.api = api }<br>
+}
+            </div>
+          </div>
+        </div>
+        <div class="m-input">
+          <input class="f" placeholder="Ask a question..." value="" disabled>
+          <div class="s">&uarr;</div>
+        </div>
       </div>
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <h3>Notion AI powered</h3>
-        <p>Uses your Notion AI subscription. No separate API keys, no extra monthly fees &mdash; just your token_v2 cookie and you&rsquo;re set.</p>
-      </div>
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-        <h3>Live streaming</h3>
-        <p>Typewriter animation as the AI responds. Full markdown &mdash; tables with native grid rendering, headings, code blocks, and lists.</p>
-      </div>
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <h3>Conversation history</h3>
-        <p>Auto-saves every chat to local JSON. Browse, restore, or delete past conversations from the &vellip; menu. Nothing is lost.</p>
-      </div>
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
-        <h3>Multi-model</h3>
-        <p>Switch between Claude Opus/Sonnet, GPT, Gemini, and Kimi right from the header pill. Visual feedback shows the active model.</p>
-      </div>
-      <div class="f-item">
-        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-        <h3>EN &bull; RU</h3>
-        <p>Full English and Russian interface. All labels, placeholders, and history UI adapt instantly with a toggle in the menu bar.</p>
+      <div>
+        <h2 class="section-title">Your AI, your desktop.</h2>
+        <p class="section-sub wide">HideAIChat sits on top of every app you use. Click-through when idle, interactive when summoned. Full markdown with native tables, code blocks, and real-time streaming as the AI types.</p>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)"><span style="font-size:16px">&#8984;</span>+<span style="font-size:16px">&#8997;</span>+<span style="font-size:16px">N</span> Toggle overlay</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)"><span style="font-size:16px">&#8629;</span> Send</span>
+          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)">&vellip; History</span>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="showcase">
+<section class="s-gray" id="models">
   <div class="inner">
-    <div class="showcase-grid">
-      <div class="showcase-text">
-        <h2 class="section-title">Works with your stack.</h2>
-        <p class="section-sub">Write code, debug logs, draft messages, analyze data &mdash; all without leaving your current window. The overlay follows you across spaces and fullscreen apps.</p>
-        <div style="display:flex;gap:16px;flex-wrap:wrap">
-          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)"><span style="font-size:16px">&#8984;</span> + <span style="font-size:16px">&#8997;</span> + <span style="font-size:16px">N</span> Toggle overlay</span>
-          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)"><span style="font-size:16px">&#8629;</span> Send message</span>
-          <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600)">&vellip; History &amp; settings</span>
+    <div class="split flip">
+      <div style="padding-left:40px">
+        <h2 class="section-title">Ten models. One interface.</h2>
+        <p class="section-sub wide">Switch between Claude, GPT, Gemini, and Kimi right from the header pill. Each conversation remembers the model used and restores it when you return.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:var(--g200);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--g600);font-weight:500">Claude Sonnet 4.6</span>
+          <span style="background:var(--g200);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--g600);font-weight:500">Claude Opus 4.7</span>
+          <span style="background:var(--g200);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--g600);font-weight:500">GPT-5.4</span>
+          <span style="background:var(--g200);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--g600);font-weight:500">Gemini 2.5</span>
+          <span style="background:var(--g200);padding:4px 12px;border-radius:100px;font-size:12px;color:var(--g600);font-weight:500">Kimi 2.6</span>
         </div>
       </div>
-      <div class="showcase-mockup">
-        <div class="mockup" style="transform:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
-          <div class="mockup-header">
-            <div class="mockup-dots"><span></span><span></span><span></span></div>
-            <div class="m-pill"><span class="d"></span>Claude Opus 4.7<span style="font-size:7px;opacity:.4;margin-left:2px">&#9662;</span></div>
+      <div>
+        <div class="mockup" style="box-shadow:0 20px 60px rgba(0,0,0,.12)">
+          <div class="m-header">
+            <div class="m-dots"><span></span><span></span><span></span></div>
+            <div class="m-pill"><span class="d"></span>GPT-5.4<span style="font-size:7px;opacity:.4;margin-left:2px">&#9662;</span></div>
             <span class="m-close">&#10005;</span>
           </div>
-          <div class="mockup-body">
-            <div class="m-bubble user">Explain dependency injection in Swift with an example</div>
-            <div class="m-bubble ai">
-              <strong style="color:rgba(255,255,255,.9)">Dependency injection</strong> is a pattern where an object receives its dependencies from outside rather than creating them internally. This makes code testable and loosely coupled.<br><br>
-              <strong style="color:rgba(255,255,255,.9)">Initializer injection</strong> (the most common form in Swift):
-              <div class="code">
-protocol API { func fetch() }<br><br>
-class Service {<br>
-&nbsp;&nbsp;let api: API<br>
-&nbsp;&nbsp;init(api: API) { self.api = api }<br>
-}<br><br>
-// Test with mock<br>
-class MockAPI: API { ... }
+          <div class="m-body" style="min-height:140px">
+            <div class="m-bub user">Write a Python decorator that measures execution time</div>
+            <div class="m-bub ai">
+              <div class="cd">
+import time<br>
+from functools import wraps<br><br>
+def timer(func):<br>
+&nbsp;&nbsp;@wraps(func)<br>
+&nbsp;&nbsp;def wrapper(*args, **kwargs):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start = time.perf_counter()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;result = func(*args, **kwargs)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;elapsed = time.perf_counter() - start<br>
+&nbsp;&nbsp;&nbsp;&nbsp;print(f"{func.__name__} took {elapsed:.3f}s")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+&nbsp;&nbsp;return wrapper
               </div>
-              Now <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px">Service</code> works with any <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px">API</code> implementation &mdash; real or mock.
+              Use <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px">@timer</code> above any function.
             </div>
           </div>
-          <div class="mb-input">
+          <div class="m-input">
             <input class="f" placeholder="Ask a question..." value="" disabled>
             <div class="s">&uarr;</div>
           </div>
@@ -411,69 +272,46 @@ class MockAPI: API { ... }
   </div>
 </section>
 
-<section id="examples">
+<section class="s-light" id="features">
   <div class="inner">
-    <h2 class="section-title">Real queries, real answers.</h2>
-    <p class="section-sub">HideAIChat handles whatever you throw at it &mdash; code, sysadmin, data, or quick drafts.</p>
-    <div class="ex-grid">
-      <div class="ex-card">
-        <div class="ex-q"><span class="i">&#9656;</span> Refactor to async/await</div>
-        <div class="ex-a">
-          "Rewrite this with async/await:"
-          <div class="ex-code">
-func fetch(id: String, cb: @escaping (User?) -> Void) {<br>
-&nbsp;&nbsp;URLSession.shared.dataTask(with: url) { d,_,_ in<br>
-&nbsp;&nbsp;&nbsp;&nbsp;cb(d.flatMap { try? JSONDecoder().decode(User.self, from: $0) })<br>
-&nbsp;&nbsp;}.resume()<br>
-}
-          </div>
-          &rarr;
-          <div class="ex-code" style="margin-top:6px">
-func fetch(id: String) async throws -> User {<br>
-&nbsp;&nbsp;let (data, _) = try await URLSession.shared.data(from: url)<br>
-&nbsp;&nbsp;return try JSONDecoder().decode(User.self, from: data)<br>
-}
-          </div>
-        </div>
-        <div class="ex-tags"><span>swift</span><span>async</span></div>
+    <h2 class="section-title" style="text-align:center">Everything you need.</h2>
+    <p class="section-sub" style="text-align:center;margin-left:auto;margin-right:auto">Six features that make HideAIChat the most seamless AI companion for macOS.</p>
+    <div class="f-grid">
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3>Stealth by default</h3>
+        <p>Opacity drops to 0.025 when idle &mdash; practically invisible. Click-through so you never miss a click.</p>
       </div>
-      <div class="ex-card">
-        <div class="ex-q"><span class="i">&#9656;</span> Explain a bash command</div>
-        <div class="ex-a">
-          "What does <span class="hl">find . -name &quot;*.swift&quot; | xargs wc -l</span> do?"<br><br>
-          Finds all <span class="hl">.swift</span> files recursively, pipes them to <span class="hl">wc -l</span> to count total lines. Add <span class="hl">sort -n</span> for per-file sorted output &mdash; useful for measuring project size.
-        </div>
-        <div class="ex-tags"><span>bash</span><span>terminal</span></div>
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <h3>Notion AI powered</h3>
+        <p>Uses your Notion AI subscription. No API keys. The app auto-starts the local server on launch.</p>
       </div>
-      <div class="ex-card">
-        <div class="ex-q"><span class="i">&#9656;</span> Top products SQL</div>
-        <div class="ex-a">
-          "Top 5 purchased products this month:"
-          <div class="ex-code">
-SELECT p.name, COUNT(*) as sales<br>
-FROM products p<br>
-JOIN order_items oi ON p.id = oi.product_id<br>
-JOIN orders o ON oi.order_id = o.id<br>
-WHERE o.created_at >= date_trunc('month', CURRENT_DATE)<br>
-GROUP BY p.id, p.name<br>
-ORDER BY sales DESC LIMIT 5;
-          </div>
-        </div>
-        <div class="ex-tags"><span>sql</span><span>analytics</span></div>
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Live streaming</h3>
+        <p>Typewriter animation. Full markdown &mdash; tables with native grid, headings, code blocks, and lists.</p>
       </div>
-      <div class="ex-card">
-        <div class="ex-q"><span class="i">&#9656;</span> Draft a Slack message</div>
-        <div class="ex-a">
-          "Politely say deploy is delayed by 2 hours due to DB migration issues."<br><br>
-          <em style="color:var(--g400);font-style:normal">&ldquo;Hey team &mdash; today&rsquo;s deploy is delayed ~2h while we resolve a DB migration. Will keep you posted. Thanks for your patience!&rdquo;</em>
-        </div>
-        <div class="ex-tags"><span>writing</span><span>quick</span></div>
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Chat history</h3>
+        <p>Auto-saves every conversation. Browse, restore, or delete from the &vellip; menu.</p>
+      </div>
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <h3>Multi-model</h3>
+        <p>Switch between Claude, GPT, Gemini, Kimi from the header pill.</p>
+      </div>
+      <div class="f-item">
+        <div class="f-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3>EN &bull; RU</h3>
+        <p>Full English and Russian interface. Toggle from the menu bar.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="stats">
+<section class="s-dark" id="stats">
   <div class="inner">
     <div class="stats-grid">
       <div class="stat"><div class="stat-num">0.025</div><div class="stat-label">Idle opacity</div></div>
@@ -484,103 +322,99 @@ ORDER BY sales DESC LIMIT 5;
   </div>
 </section>
 
-<section id="setup">
+<section class="s-gray" id="examples">
   <div class="inner">
-    <div class="setup-grid">
+    <h2 class="section-title" style="text-align:center">Real queries. Real answers.</h2>
+    <p class="section-sub" style="text-align:center;margin-left:auto;margin-right:auto">Code, sysadmin, data, drafts &mdash; whatever you throw at it.</p>
+    <div class="ex-grid">
+      <div class="ex-card">
+        <div class="ex-q"><span class="i">&#9656;</span> Refactor to async/await</div>
+        <div class="ex-a">"Rewrite with async/await:"<div class="ex-code">func fetch(id: String, cb: @escaping (User?) -> Void) {<br>&nbsp;&nbsp;URLSession.shared.dataTask(with: url) { d,_,_ in<br>&nbsp;&nbsp;&nbsp;&nbsp;cb(d.flatMap { try? JSONDecoder().decode(User.self, from: $0) })<br>&nbsp;&nbsp;}.resume()<br>}</div>&rarr;<div class="ex-code" style="margin-top:6px">func fetch(id: String) async throws -> User {<br>&nbsp;&nbsp;let (data, _) = try await URLSession.shared.data(from: url)<br>&nbsp;&nbsp;return try JSONDecoder().decode(User.self, from: data)<br>}</div></div>
+        <div class="ex-tags"><span>swift</span><span>async</span></div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-q"><span class="i">&#9656;</span> Explain bash command</div>
+        <div class="ex-a">"What does <span class="hl">find . -name &quot;*.swift&quot; | xargs wc -l</span> do?"<br><br>Finds all .swift files, pipes to <span class="hl">wc -l</span> for total lines. Add <span class="hl">sort -n</span> for per-file sorted output.</div>
+        <div class="ex-tags"><span>bash</span><span>terminal</span></div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-q"><span class="i">&#9656;</span> Top products SQL</div>
+        <div class="ex-a">"Top 5 products this month:"<div class="ex-code">SELECT p.name, COUNT(*) as sales<br>FROM products p<br>JOIN order_items oi ON p.id = oi.product_id<br>JOIN orders o ON oi.order_id = o.id<br>WHERE o.created_at >= date_trunc('month', CURRENT_DATE)<br>GROUP BY p.id, p.name<br>ORDER BY sales DESC LIMIT 5;</div></div>
+        <div class="ex-tags"><span>sql</span><span>analytics</span></div>
+      </div>
+      <div class="ex-card">
+        <div class="ex-q"><span class="i">&#9656;</span> Draft a Slack message</div>
+        <div class="ex-a">"Politely say deploy is delayed 2h due to DB migration."<br><br><em style="color:var(--g400);font-style:normal">&ldquo;Hey team &mdash; today&rsquo;s deploy is delayed ~2h while we resolve a DB migration. Will keep you posted. Thanks!&rdquo;</em></div>
+        <div class="ex-tags"><span>writing</span><span>quick</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="s-light" id="setup">
+  <div class="inner">
+    <div class="split">
       <div>
         <h2 class="section-title">Three steps to stealth.</h2>
-        <p class="section-sub">No繁杂 configs. No Docker. Just clone, configure, and launch.</p>
-        <div class="steps-list">
-          <div class="step">
-            <div class="step-num">1</div>
-            <div>
-              <h3>Clone notion2api</h3>
-              <p><code>git clone</code> the server. Install deps. Set your Notion <code>token_v2</code> in <code>accounts.json</code>.</p>
-            </div>
+        <p class="section-sub wide">Clone, configure, launch. No Docker, no繁杂 setup.</p>
+        <div style="counter-reset:step">
+          <div style="counter-increment:step;display:flex;gap:20px;margin-bottom:36px">
+            <div style="flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--g200);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--g600)">1</div>
+            <div><h3 style="font-size:16px;font-weight:600;color:var(--g800);margin-bottom:6px">Clone notion2api</h3><p style="font-size:14px;color:var(--g500);line-height:1.7"><code style="font-family:'SF Mono',Menlo,monospace;font-size:12.5px;color:var(--g700);background:var(--g100);padding:2px 8px;border-radius:5px">git clone</code>, install deps, set <code style="font-family:'SF Mono',Menlo,monospace;font-size:12.5px;color:var(--g700);background:var(--g100);padding:2px 8px;border-radius:5px">token_v2</code>.</p></div>
           </div>
-          <div class="step">
-            <div class="step-num">2</div>
-            <div>
-              <h3>Open HideAIChat</h3>
-              <p>The app auto-starts the server on launch. No terminal commands needed after setup.</p>
-            </div>
+          <div style="counter-increment:step;display:flex;gap:20px;margin-bottom:36px">
+            <div style="flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--g200);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--g600)">2</div>
+            <div><h3 style="font-size:16px;font-weight:600;color:var(--g800);margin-bottom:6px">Open HideAIChat</h3><p style="font-size:14px;color:var(--g500);line-height:1.7">Auto-starts the server. No terminal after initial setup.</p></div>
           </div>
-          <div class="step">
-            <div class="step-num">3</div>
-            <div>
-              <h3>Press <kbd>&#8984;</kbd><kbd>&#8997;</kbd><kbd>N</kbd></h3>
-              <p>Summon the overlay anywhere, ask your question, and vanish back to work.</p>
-            </div>
+          <div style="display:flex;gap:20px">
+            <div style="flex-shrink:0;width:40px;height:40px;border-radius:12px;background:var(--g200);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--g600)">3</div>
+            <div><h3 style="font-size:16px;font-weight:600;color:var(--g800);margin-bottom:6px">Press <kbd>&#8984;</kbd><kbd>&#8997;</kbd><kbd>N</kbd></h3><p style="font-size:14px;color:var(--g500);line-height:1.7">Summon, ask, vanish.</p></div>
           </div>
         </div>
       </div>
       <div class="setup-diagram">
         <div class="label">Architecture</div>
         <span class="hl">HideAIChat.app</span><br>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; SwiftUI + AppKit (NSPanel)</span>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; streams over HTTP</span>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; starts as subprocess</span>
+        <span style="padding-left:20px;display:block">&boxur;&mdash; SwiftUI + AppKit</span>
+        <span style="padding-left:20px;display:block">&boxur;&mdash; auto-starts server</span>
         <br>
-        <span style="color:rgba(255,255,255,.25)">|</span><br>
-        <span style="color:rgba(255,255,255,.25)">v</span><br>
+        <span style="color:rgba(255,255,255,.25)">|</span> v<br>
         <br>
         <span class="hl">notion2api</span> (FastAPI + Uvicorn)<br>
         <span style="padding-left:20px;display:block">&boxur;&mdash; port 8000</span>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; OpenAI-compatible API</span>
+        <span style="padding-left:20px;display:block">&boxur;&mdash; OpenAI-compatible</span>
         <br>
-        <span style="color:rgba(255,255,255,.25)">|</span><br>
-        <span style="color:rgba(255,255,255,.25)">v</span><br>
+        <span style="color:rgba(255,255,255,.25)">|</span> v<br>
         <br>
-        <span class="hl">Notion AI</span> (api.notion.com)<br>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; your token_v2 auth</span>
-        <span style="padding-left:20px;display:block">&boxur;&mdash; Claude, GPT, Gemini, Kimi</span>
+        <span class="hl">Notion AI</span><br>
+        <span style="padding-left:20px;display:block">&boxur;&mdash; token_v2 auth</span>
+        <span style="padding-left:20px;display:block">&boxur;&mdash; all models</span>
       </div>
     </div>
   </div>
 </section>
 
-<section id="faq">
+<section class="s-gray" id="faq">
   <div class="inner">
-    <h2 class="section-title">Frequently asked.</h2>
-    <p class="section-sub">Common questions about HideAIChat.</p>
+    <h2 class="section-title" style="text-align:center">Frequently asked.</h2>
+    <p class="section-sub" style="text-align:center;margin-left:auto;margin-right:auto">Common questions.</p>
     <div class="faq-grid">
-      <div class="faq-item">
-        <div class="faq-q">Do I need a separate API key?</div>
-        <div class="faq-a">No. HideAIChat uses your Notion AI subscription through notion2api. The only credential you need is your Notion <code>token_v2</code> cookie.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Is it free?</div>
-        <div class="faq-a">The app and notion2api are both open source and free. You only pay for your Notion AI subscription (already required).</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Is it safe?</div>
-        <div class="faq-a">All communication stays on your machine. The notion2api server runs locally on port 8000 and never sends your token elsewhere.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Does it work with Apple Silicon?</div>
-        <div class="faq-a">Yes. Optimized for Apple Silicon (arm64). macOS 15+ required due to SwiftUI and Swift 6 APIs used.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Can I use other AI models?</div>
-        <div class="faq-a">HideAIChat exposes all models available through notion2api &mdash; Claude Sonnet/Opus, GPT-5.x, Gemini 2.5/3.1, and Kimi 2.6.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">What about privacy?</div>
-        <div class="faq-a">Your conversations are stored locally in <code>chat_history.json</code>. No data is sent to any third party besides Notion through notion2api.</div>
-      </div>
+      <div class="faq-item"><div class="faq-q">Do I need a separate API key?</div><div class="faq-a">No. Uses your Notion AI subscription. Only need your <code style="font-family:'SF Mono',Menlo,monospace;font-size:12px;background:var(--g100);padding:1px 5px;border-radius:3px">token_v2</code> cookie.</div></div>
+      <div class="faq-item"><div class="faq-q">Is it free?</div><div class="faq-a">Open source and free. You only pay for your Notion AI subscription.</div></div>
+      <div class="faq-item"><div class="faq-q">Is it safe?</div><div class="faq-a">All traffic stays local. notion2api runs on port 8000, never sends your token elsewhere.</div></div>
+      <div class="faq-item"><div class="faq-q">macOS requirements?</div><div class="faq-a">macOS 15+, Apple Silicon.</div></div>
+      <div class="faq-item"><div class="faq-q">Available models?</div><div class="faq-a">Claude, GPT-5.x, Gemini 2.5/3.1, Kimi 2.6. Switch from the header.</div></div>
+      <div class="faq-item"><div class="faq-q">Privacy?</div><div class="faq-a">Local <code style="font-family:'SF Mono',Menlo,monospace;font-size:12px;background:var(--g100);padding:1px 5px;border-radius:3px">chat_history.json</code>. No third-party data sharing.</div></div>
     </div>
   </div>
 </section>
 
-<section id="cta">
+<section class="s-light cta">
   <div class="inner">
     <h2>Stop switching contexts.</h2>
-    <p>Free. Open source. Runs on your Notion AI subscription. Start asking from anywhere.</p>
-    <div class="hero-buttons" style="justify-content:center">
-      <a href="https://github.com/ArtemPotapov52/HideAIChat/releases" class="btn btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Download DMG
-      </a>
+    <p>Free. Open source. Powered by your Notion AI subscription.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="https://github.com/ArtemPotapov52/HideAIChat/releases" class="btn btn-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download DMG</a>
       <a href="https://github.com/ArtemPotapov52/HideAIChat" class="btn btn-secondary">View on GitHub</a>
     </div>
   </div>
