@@ -1,6 +1,15 @@
 import Cocoa
 import SwiftUI
 
+private func serverStatusLabel(_ s: ServerManager.Status) -> String {
+    switch s {
+    case .starting: return "⚡ Сервер запускается…"
+    case .running:  return "● Сервер работает"
+    case .error:    return "✕ Ошибка сервера"
+    case .stopped:  return "○ Сервер остановлен"
+    }
+}
+
 @main
 struct TransparentNotionApp: App {
     @NSApplicationDelegateAdaptor(AppSetup.self) var setup
@@ -25,6 +34,11 @@ struct TransparentNotionApp: App {
             }
 
             Divider()
+
+            Text(serverStatusLabel(setup.controller.server.status))
+                .font(.system(size: 10)).foregroundColor(.secondary)
+
+            Divider()
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
         }
@@ -36,6 +50,64 @@ struct TransparentNotionApp: App {
     func applicationDidFinishLaunching(_ notification: Notification) {
         controller.start()
     }
+    func applicationWillTerminate(_ notification: Notification) {
+        controller.server.stop()
+    }
+}
+
+@MainActor final class ServerManager {
+    enum Status: String {
+        case starting, running, error, stopped
+    }
+    private(set) var status: Status = .stopped
+    private var proc: Process?
+
+    func start() {
+        guard proc == nil else { return }
+        status = .starting
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let dir = home + "/notion2api"
+        guard FileManager.default.fileExists(atPath: dir + "/.venv/bin/activate") else {
+            status = .error; return
+        }
+        let p = Process()
+        p.currentDirectoryURL = URL(fileURLWithPath: dir)
+        p.executableURL = URL(fileURLWithPath: dir + "/.venv/bin/python3")
+        p.arguments = ["-m", "uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "8000"]
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        p.terminationHandler = { [weak self] _ in
+            Task { @MainActor in self?.status = .stopped; self?.proc = nil }
+        }
+        do {
+            try p.run()
+            proc = p
+            Task { @MainActor in await self.waitForReady() }
+        } catch {
+            status = .error
+        }
+    }
+
+    private func waitForReady() async {
+        for _ in 0..<30 {
+            guard proc != nil else { return }
+            if let url = URL(string: "http://localhost:8000/health"),
+               let data = try? await URLSession.shared.data(from: url),
+               let body = try? JSONSerialization.jsonObject(with: data.0) as? [String: Any],
+               body["status"] as? String == "ok" {
+                status = .running
+                return
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+        }
+        status = .error
+    }
+
+    func stop() {
+        proc?.terminate()
+        proc = nil
+        status = .stopped
+    }
 }
 
 @MainActor
@@ -44,6 +116,7 @@ final class OverlayController {
     var isActive = false
     var selectedModel = "claude-sonnet4.6"
     var language = "ru"
+    let server = ServerManager()
 
     struct ModelOption: Identifiable, Hashable {
         let id: String
@@ -72,6 +145,7 @@ final class OverlayController {
     func start() {
         createPanel()
         registerGlobalHotkey()
+        server.start()
     }
 
     func toggle() {
