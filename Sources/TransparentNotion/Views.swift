@@ -366,6 +366,9 @@ private func normalizeMarkdown(_ text: String) -> String {
     s.replace( #/\[ref\]\(([^)]+)\)/# ) { match in
         "[ref](\(match.1))"
     }
+    s.replace( #/\$`([^`]+)`\$/# ) { match in
+        "\(match.1)"
+    }
     return s
 }
 
