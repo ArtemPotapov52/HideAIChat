@@ -393,7 +393,8 @@ private func parseBlocks(_ text: String) -> [ContentBlock] {
     let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
     var i = 0
     while i < lines.count {
-        if lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+        let trimmed = lines[i].trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("|") {
             var tableLines: [String] = []
             while i < lines.count && lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
                 tableLines.append(lines[i])
@@ -404,9 +405,23 @@ private func parseBlocks(_ text: String) -> [ContentBlock] {
             } else {
                 blocks.append(.text(tableLines.joined(separator: "\n")))
             }
+        } else if trimmed.hasPrefix("<table") {
+            var htmlLines: [String] = []
+            while i < lines.count && !lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("</table") {
+                htmlLines.append(lines[i])
+                i += 1
+            }
+            if i < lines.count { htmlLines.append(lines[i]); i += 1 }
+            if let table = parseHTMLTable(htmlLines.joined(separator: "\n")) {
+                blocks.append(.table(table))
+            } else {
+                blocks.append(.text(htmlLines.joined(separator: "\n")))
+            }
         } else {
             var textLines: [String] = []
-            while i < lines.count && !lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+            while i < lines.count {
+                let t = lines[i].trimmingCharacters(in: .whitespaces)
+                if t.hasPrefix("|") || t.hasPrefix("<table") { break }
                 textLines.append(lines[i])
                 i += 1
             }
@@ -414,6 +429,21 @@ private func parseBlocks(_ text: String) -> [ContentBlock] {
         }
     }
     return blocks
+}
+
+private func parseHTMLTable(_ html: String) -> TableBlock? {
+    let rows = html.matches(of: #/(?s)<tr>(.+?)<\/tr>/#).map { String($0.1) }
+    guard !rows.isEmpty else { return nil }
+    func cells(_ row: String) -> [String] {
+        row.matches(of: #/(?s)<t[dh][^>]*>(.+?)<\/t[dh]>/#).map {
+            $0.1.trimmingCharacters(in: .whitespaces)
+        }
+    }
+    let all = rows.map(cells)
+    let headers = all.first ?? []
+    let data = Array(all.dropFirst()).filter { !$0.isEmpty }
+    guard !data.isEmpty else { return nil }
+    return TableBlock(headers: headers, rows: data)
 }
 
 private func parseTable(_ lines: [String]) -> TableBlock? {
