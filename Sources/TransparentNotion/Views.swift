@@ -220,7 +220,19 @@ struct ContentView: View {
 
     private var inputBar: some View {
         HStack(spacing: 6) {
-            GrowingTextView(text: $input, placeholder: lang.inputPlaceholder, onSend: send)
+            TextField(lang.inputPlaceholder, text: $input, axis: .vertical)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12.5))
+                .foregroundColor(.white.opacity(0.9))
+                .lineLimit(1...6)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(Color.white.opacity(0.04))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                )
+                .onSubmit(of: .text) { send() }
 
             Button { send() } label: {
                 ZStack {
@@ -360,6 +372,9 @@ private func normalizeMarkdown(_ text: String) -> String {
     }
     s.replace( #/⸻/# ) { _ in "\n---\n" }
     s.replace( #/<table/# ) { _ in "\n<table" }
+    s.replace( #/([.!?:])\n(?!\n)/# ) { match in
+        "\(match.1)\n\n"
+    }
     return s
 }
 
@@ -480,10 +495,10 @@ struct StreamingText: View {
     var body: some View {
         Group {
             if isStreaming {
-                Text(renderMarkdown(displayed, full: false))
+                renderedBlocks(streaming: true)
                     .textSelection(.enabled)
             } else {
-                renderedBlocks
+                renderedBlocks(streaming: false)
                     .textSelection(.enabled)
             }
         }
@@ -495,10 +510,9 @@ struct StreamingText: View {
             streamTask?.cancel()
             if isStreaming {
                 streamTask = Task {
-                    let start = displayed.count
-                    let rest = String(new.dropFirst(start))
+                    let rest = String(new.dropFirst(displayed.count))
                     for ch in rest {
-                        try? await Task.sleep(nanoseconds: 10_000_000)
+                        try? await Task.sleep(nanoseconds: 3_000_000)
                         if Task.isCancelled { return }
                         displayed.append(ch)
                     }
@@ -510,15 +524,19 @@ struct StreamingText: View {
     }
 
     @ViewBuilder
-    private var renderedBlocks: some View {
-        let blocks = parseBlocks(displayed)
-        VStack(alignment: .leading, spacing: 6) {
-            ForEach(blocks.indices, id: \.self) { i in
-                switch blocks[i] {
-                case .text(let md):
-                    Text(renderMarkdown(md, full: true))
-                case .table(let t):
-                    TableView(block: t)
+    private func renderedBlocks(streaming: Bool) -> some View {
+        if streaming {
+            Text(renderMarkdown(displayed, full: true))
+        } else {
+            let blocks = parseBlocks(displayed)
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(blocks.indices, id: \.self) { i in
+                    switch blocks[i] {
+                    case .text(let md):
+                        Text(renderMarkdown(md, full: true))
+                    case .table(let t):
+                        TableView(block: t)
+                    }
                 }
             }
         }
@@ -589,81 +607,6 @@ struct VisualEffect: NSViewRepresentable {
     func updateNSView(_ v: NSVisualEffectView, context: Context) {
         v.material = material
         v.blendingMode = blending
-    }
-}
-
-struct GrowingTextView: NSViewRepresentable {
-    @Binding var text: String
-    let placeholder: String
-    let onSend: () -> Void
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    func makeNSView(context: Context) -> NSTextView {
-        let tv = NSTextView()
-        tv.drawsBackground = false
-        tv.isEditable = true
-        tv.isSelectable = true
-        tv.isRichText = false
-        tv.font = .systemFont(ofSize: 12.5)
-        tv.textColor = .white.withAlphaComponent(0.9)
-        tv.textContainerInset = NSSize(width: 14, height: 10)
-        tv.textContainer?.lineFragmentPadding = 0
-        tv.string = ""
-        tv.delegate = context.coordinator
-        tv.isVerticallyResizable = true
-        tv.autoresizingMask = .width
-
-        tv.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(
-            context.coordinator,
-            selector: #selector(Coordinator.textChanged),
-            name: NSText.didChangeNotification,
-            object: tv
-        )
-
-        DispatchQueue.main.async {
-            if let window = tv.window { window.makeFirstResponder(tv) }
-        }
-
-        return tv
-    }
-
-    func updateNSView(_ tv: NSTextView, context: Context) {
-        if tv.string != text {
-            tv.string = text
-        }
-    }
-
-    class Coordinator: NSObject, NSTextViewDelegate {
-        var parent: GrowingTextView
-
-        init(_ parent: GrowingTextView) {
-            self.parent = parent
-        }
-
-        func textDidChange(_ note: Notification) {
-            guard let tv = note.object as? NSTextView else { return }
-            parent.text = tv.string
-        }
-
-        @objc func textChanged(_ note: Notification) {
-        }
-
-        func textView(_ tv: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
-            if commandSelector == #selector(NSResponder.insertNewline(_:)) {
-                let modifiers = NSApp.currentEvent?.modifierFlags ?? []
-                if modifiers.contains(.shift) || modifiers.contains(.command) {
-                    tv.insertNewlineIgnoringFieldEditor(nil)
-                    return true
-                }
-                parent.onSend()
-                return true
-            }
-            return false
-        }
     }
 }
 
