@@ -355,13 +355,32 @@ struct MessageBubble: View {
     }
 }
 
-private func renderInline(_ text: String) -> AttributedString {
-    let p = text
-        .split(separator: "\n", omittingEmptySubsequences: false)
-        .map { $0.hasPrefix("### ") ? "**" + $0.dropFirst(4) + "**" : $0 }
-        .joined(separator: "\n")
-    return (try? AttributedString(markdown: p,
-        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+private func normalizeMarkdown(_ text: String) -> String {
+    var s = text
+    s.replace( #/\[\^\(\(([^)]+)\)\)\]/# ) { match in
+        "[source](\(match.1))"
+    }
+    s.replace( #/\[\^\(([^)]+)\)\]/# ) { match in
+        "[source](\(match.1))"
+    }
+    s.replace( #/\[ref\]\(([^)]+)\)/# ) { match in
+        "[ref](\(match.1))"
+    }
+    return s
+}
+
+private func renderMarkdown(_ text: String, full: Bool) -> AttributedString {
+    let mode: AttributedString.MarkdownParsingOptions.InterpretedSyntax = full ? .full : .inlineOnlyPreservingWhitespace
+    let processed: String
+    if full {
+        processed = normalizeMarkdown(text)
+    } else {
+        processed = normalizeMarkdown(text)
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { $0.hasPrefix("### ") ? "**" + $0.dropFirst(4) + "**" : $0 }
+            .joined(separator: "\n")
+    }
+    return (try? AttributedString(markdown: processed, options: .init(interpretedSyntax: mode)))
         ?? AttributedString(text)
 }
 
@@ -407,22 +426,25 @@ private func parseBlocks(_ text: String) -> [ContentBlock] {
 
 private func parseTable(_ lines: [String]) -> TableBlock? {
     guard lines.count >= 2 else { return nil }
+    let sep = lines[1].trimmingCharacters(in: .whitespaces)
+    let hasSep = sep.contains("---") || sep.contains("===")
+    let dataStart = hasSep ? 2 : 1
     let headers = lines[0]
         .trimmingCharacters(in: .whitespaces)
         .trimmingCharacters(in: CharacterSet(charactersIn: "|"))
         .split(separator: "|").map { String($0).trimmingCharacters(in: .whitespaces) }
     guard !headers.isEmpty else { return nil }
     var rows: [[String]] = []
-    for line in lines.dropFirst(2) {
+    for line in lines.dropFirst(dataStart) {
         let cells = line
             .trimmingCharacters(in: .whitespaces)
             .trimmingCharacters(in: CharacterSet(charactersIn: "|"))
             .split(separator: "|").map { String($0).trimmingCharacters(in: .whitespaces) }
-        if cells.count == headers.count {
+        if !cells.isEmpty {
             rows.append(cells)
         }
     }
-    return TableBlock(headers: headers, rows: rows)
+    return rows.isEmpty ? nil : TableBlock(headers: headers, rows: rows)
 }
 
 struct StreamingText: View {
@@ -434,11 +456,15 @@ struct StreamingText: View {
     var body: some View {
         Group {
             if isStreaming {
-                Text(renderInline(displayed))
+                Text(renderMarkdown(displayed, full: false))
             } else {
                 renderedBlocks
             }
         }
+        .environment(\.openURL, OpenURLAction { url in
+            NSWorkspace.shared.open(url)
+            return .handled
+        })
         .onChange(of: content, initial: true) { _, new in
             streamTask?.cancel()
             if isStreaming {
@@ -464,7 +490,7 @@ struct StreamingText: View {
             ForEach(blocks.indices, id: \.self) { i in
                 switch blocks[i] {
                 case .text(let md):
-                    Text(renderInline(md))
+                    Text(renderMarkdown(md, full: true))
                 case .table(let t):
                     TableView(block: t)
                 }
