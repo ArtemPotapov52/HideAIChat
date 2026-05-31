@@ -2,7 +2,7 @@ import Foundation
 
 actor NotionAPI {
     static let shared = NotionAPI()
-    private let base = "http://localhost:3123"
+    private let base = "http://localhost:8000"
     private let session: URLSession
 
     private init() {
