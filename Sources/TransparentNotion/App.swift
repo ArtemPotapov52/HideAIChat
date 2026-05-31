@@ -154,6 +154,7 @@ final class OverlayController {
 
     func activate() {
         isActive = true
+        panel?.alphaValue = 1.0
         panel?.setClickThrough(false)
         panel?.orderFrontRegardless()
         panel?.makeKey()
@@ -162,8 +163,8 @@ final class OverlayController {
 
     func deactivate() {
         isActive = false
-        panel?.setClickThrough(true)
-        panel?.orderBack(nil)
+        panel?.alphaValue = 0.0
+        panel?.orderOut(nil)
     }
 
     private func createPanel() {
@@ -181,6 +182,7 @@ final class OverlayController {
         p.isOpaque = false
         p.hasShadow = false
         p.setClickThrough(true)
+        p.alphaValue = 0.0
 
         let cv = ContentView(controller: self)
         let host = NSHostingView(rootView: cv)
