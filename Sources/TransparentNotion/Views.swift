@@ -358,6 +358,8 @@ private func normalizeMarkdown(_ text: String) -> String {
     s.replace( #/\$`([^`]+)`\$/# ) { match in
         "\(match.1)"
     }
+    s.replace( #/⸻/# ) { _ in "\n---\n" }
+    s.replace( #/<table/# ) { _ in "\n<table" }
     return s
 }
 
