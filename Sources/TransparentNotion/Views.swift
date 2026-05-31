@@ -355,20 +355,74 @@ struct MessageBubble: View {
     }
 }
 
-private func renderMarkdown(_ text: String) -> AttributedString {
-    let processed = text
+private func renderInline(_ text: String) -> AttributedString {
+    let p = text
         .split(separator: "\n", omittingEmptySubsequences: false)
-        .map { line -> String in
-            let s = String(line)
-            if s.hasPrefix("### ") { return "**" + String(s.dropFirst(4)) + "**" }
-            return s
-        }
+        .map { $0.hasPrefix("### ") ? "**" + $0.dropFirst(4) + "**" : $0 }
         .joined(separator: "\n")
-    if let att = try? AttributedString(markdown: processed,
-        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
-        return att
+    return (try? AttributedString(markdown: p,
+        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
+        ?? AttributedString(text)
+}
+
+private struct TableBlock: Identifiable {
+    let id = UUID()
+    let headers: [String]
+    let rows: [[String]]
+}
+
+private enum ContentBlock: Identifiable {
+    var id: UUID { UUID() }
+    case text(String)
+    case table(TableBlock)
+}
+
+private func parseBlocks(_ text: String) -> [ContentBlock] {
+    var blocks: [ContentBlock] = []
+    let lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+    var i = 0
+    while i < lines.count {
+        if lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+            var tableLines: [String] = []
+            while i < lines.count && lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+                tableLines.append(lines[i])
+                i += 1
+            }
+            if let table = parseTable(tableLines) {
+                blocks.append(.table(table))
+            } else {
+                blocks.append(.text(tableLines.joined(separator: "\n")))
+            }
+        } else {
+            var textLines: [String] = []
+            while i < lines.count && !lines[i].trimmingCharacters(in: .whitespaces).hasPrefix("|") {
+                textLines.append(lines[i])
+                i += 1
+            }
+            blocks.append(.text(textLines.joined(separator: "\n")))
+        }
     }
-    return AttributedString(text)
+    return blocks
+}
+
+private func parseTable(_ lines: [String]) -> TableBlock? {
+    guard lines.count >= 2 else { return nil }
+    let headers = lines[0]
+        .trimmingCharacters(in: .whitespaces)
+        .trimmingCharacters(in: CharacterSet(charactersIn: "|"))
+        .split(separator: "|").map { String($0).trimmingCharacters(in: .whitespaces) }
+    guard !headers.isEmpty else { return nil }
+    var rows: [[String]] = []
+    for line in lines.dropFirst(2) {
+        let cells = line
+            .trimmingCharacters(in: .whitespaces)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "|"))
+            .split(separator: "|").map { String($0).trimmingCharacters(in: .whitespaces) }
+        if cells.count == headers.count {
+            rows.append(cells)
+        }
+    }
+    return TableBlock(headers: headers, rows: rows)
 }
 
 struct StreamingText: View {
@@ -378,7 +432,13 @@ struct StreamingText: View {
     @State private var streamTask: Task<Void, Never>?
 
     var body: some View {
-        Text(renderMarkdown(displayed))
+        Group {
+            if isStreaming {
+                Text(renderInline(displayed))
+            } else {
+                renderedBlocks
+            }
+        }
         .onChange(of: content, initial: true) { _, new in
             streamTask?.cancel()
             if isStreaming {
@@ -395,6 +455,54 @@ struct StreamingText: View {
                 displayed = new
             }
         }
+    }
+
+    @ViewBuilder
+    private var renderedBlocks: some View {
+        let blocks = parseBlocks(displayed)
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(blocks.indices, id: \.self) { i in
+                switch blocks[i] {
+                case .text(let md):
+                    Text(renderInline(md))
+                case .table(let t):
+                    TableView(block: t)
+                }
+            }
+        }
+    }
+}
+
+private struct TableView: View {
+    let block: TableBlock
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+            GridRow {
+                ForEach(block.headers.indices, id: \.self) { i in
+                    Text(block.headers[i])
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            Divider().gridCellUnsizedAxes(.horizontal).opacity(0.15)
+            ForEach(block.rows.indices, id: \.self) { r in
+                GridRow {
+                    ForEach(block.rows[r].indices, id: \.self) { c in
+                        Text(block.rows[r][c])
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.75))
+                    }
+                }
+            }
+        }
+        .padding(8)
+        .background(Color.white.opacity(0.03))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
     }
 }
 
