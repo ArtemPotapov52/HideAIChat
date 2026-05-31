@@ -372,8 +372,8 @@ private func normalizeMarkdown(_ text: String) -> String {
     }
     s.replace( #/⸻/# ) { _ in "\n---\n" }
     s.replace( #/<table/# ) { _ in "\n<table" }
-    s.replace( #/([.!?:])\n(?!\n)/# ) { match in
-        "\(match.1)\n\n"
+    s.replace( #/([.!?:])(\p{Lu})/# ) { match in
+        "\(match.1)\n\n\(match.2)"
     }
     return s
 }
@@ -493,50 +493,39 @@ struct StreamingText: View {
     @State private var streamTask: Task<Void, Never>?
 
     var body: some View {
-        Group {
-            if isStreaming {
-                renderedBlocks(streaming: true)
-                    .textSelection(.enabled)
-            } else {
-                renderedBlocks(streaming: false)
-                    .textSelection(.enabled)
-            }
-        }
-        .environment(\.openURL, OpenURLAction { url in
-            NSWorkspace.shared.open(url)
-            return .handled
-        })
-        .onChange(of: content, initial: true) { _, new in
-            streamTask?.cancel()
-            if isStreaming {
-                streamTask = Task {
-                    let rest = String(new.dropFirst(displayed.count))
-                    for ch in rest {
-                        try? await Task.sleep(nanoseconds: 3_000_000)
-                        if Task.isCancelled { return }
-                        displayed.append(ch)
+        renderedBlocks
+            .textSelection(.enabled)
+            .environment(\.openURL, OpenURLAction { url in
+                NSWorkspace.shared.open(url)
+                return .handled
+            })
+            .onChange(of: content, initial: true) { _, new in
+                streamTask?.cancel()
+                if isStreaming {
+                    streamTask = Task {
+                        let rest = String(new.dropFirst(displayed.count))
+                        for ch in rest {
+                            try? await Task.sleep(nanoseconds: 3_000_000)
+                            if Task.isCancelled { return }
+                            displayed.append(ch)
+                        }
                     }
+                } else {
+                    displayed = new
                 }
-            } else {
-                displayed = new
             }
-        }
     }
 
     @ViewBuilder
-    private func renderedBlocks(streaming: Bool) -> some View {
-        if streaming {
-            Text(renderMarkdown(displayed, full: true))
-        } else {
-            let blocks = parseBlocks(displayed)
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(blocks.indices, id: \.self) { i in
-                    switch blocks[i] {
-                    case .text(let md):
-                        Text(renderMarkdown(md, full: true))
-                    case .table(let t):
-                        TableView(block: t)
-                    }
+    private var renderedBlocks: some View {
+        let blocks = parseBlocks(displayed)
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(blocks.indices, id: \.self) { i in
+                switch blocks[i] {
+                case .text(let md):
+                    Text(renderMarkdown(md, full: true))
+                case .table(let t):
+                    TableView(block: t)
                 }
             }
         }
