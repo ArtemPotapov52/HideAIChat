@@ -375,6 +375,9 @@ private func normalizeMarkdown(_ text: String) -> String {
     s.replace( #/([.!?:])(\p{Lu})/# ) { match in
         "\(match.1)\n\n\(match.2)"
     }
+    s = s.replacingOccurrences(of: "\n\n", with: "\u{0}")
+    s = s.replacingOccurrences(of: "\n", with: "\n\n")
+    s = s.replacingOccurrences(of: "\u{0}", with: "\n\n")
     return s
 }
 
@@ -490,7 +493,6 @@ struct StreamingText: View {
     let content: String
     let isStreaming: Bool
     @State private var displayed = ""
-    @State private var streamTask: Task<Void, Never>?
 
     var body: some View {
         renderedBlocks
@@ -500,19 +502,7 @@ struct StreamingText: View {
                 return .handled
             })
             .onChange(of: content, initial: true) { _, new in
-                streamTask?.cancel()
-                if isStreaming {
-                    streamTask = Task {
-                        let rest = String(new.dropFirst(displayed.count))
-                        for ch in rest {
-                            try? await Task.sleep(nanoseconds: 3_000_000)
-                            if Task.isCancelled { return }
-                            displayed.append(ch)
-                        }
-                    }
-                } else {
-                    displayed = new
-                }
+                displayed = new
             }
     }
 
