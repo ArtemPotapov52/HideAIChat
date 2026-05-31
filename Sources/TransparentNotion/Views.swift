@@ -220,18 +220,7 @@ struct ContentView: View {
 
     private var inputBar: some View {
         HStack(spacing: 6) {
-            TextField(lang.inputPlaceholder, text: $input)
-                .textFieldStyle(.plain)
-                .font(.system(size: 12.5))
-                .foregroundColor(.white.opacity(0.9))
-                .padding(.horizontal, 14).padding(.vertical, 10)
-                .background(Color.white.opacity(0.04))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
-                )
-                .onSubmit(of: .text) { send() }
+            GrowingTextView(text: $input, placeholder: lang.inputPlaceholder, onSend: send)
 
             Button { send() } label: {
                 ZStack {
@@ -566,6 +555,81 @@ struct VisualEffect: NSViewRepresentable {
     func updateNSView(_ v: NSVisualEffectView, context: Context) {
         v.material = material
         v.blendingMode = blending
+    }
+}
+
+struct GrowingTextView: NSViewRepresentable {
+    @Binding var text: String
+    let placeholder: String
+    let onSend: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeNSView(context: Context) -> NSTextView {
+        let tv = NSTextView()
+        tv.drawsBackground = false
+        tv.isEditable = true
+        tv.isSelectable = true
+        tv.isRichText = false
+        tv.font = .systemFont(ofSize: 12.5)
+        tv.textColor = .white.withAlphaComponent(0.9)
+        tv.textContainerInset = NSSize(width: 14, height: 10)
+        tv.textContainer?.lineFragmentPadding = 0
+        tv.string = ""
+        tv.delegate = context.coordinator
+        tv.isVerticallyResizable = true
+        tv.autoresizingMask = .width
+
+        tv.postsFrameChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.textChanged),
+            name: NSText.didChangeNotification,
+            object: tv
+        )
+
+        DispatchQueue.main.async {
+            if let window = tv.window { window.makeFirstResponder(tv) }
+        }
+
+        return tv
+    }
+
+    func updateNSView(_ tv: NSTextView, context: Context) {
+        if tv.string != text {
+            tv.string = text
+        }
+    }
+
+    class Coordinator: NSObject, NSTextViewDelegate {
+        var parent: GrowingTextView
+
+        init(_ parent: GrowingTextView) {
+            self.parent = parent
+        }
+
+        func textDidChange(_ note: Notification) {
+            guard let tv = note.object as? NSTextView else { return }
+            parent.text = tv.string
+        }
+
+        @objc func textChanged(_ note: Notification) {
+        }
+
+        func textView(_ tv: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+            if commandSelector == #selector(NSResponder.insertNewline(_:)) {
+                let modifiers = NSApp.currentEvent?.modifierFlags ?? []
+                if modifiers.contains(.shift) || modifiers.contains(.command) {
+                    tv.insertNewlineIgnoringFieldEditor(nil)
+                    return true
+                }
+                parent.onSend()
+                return true
+            }
+            return false
+        }
     }
 }
 
